@@ -30,8 +30,25 @@ El controlador se encarga de mediar entre la vista y el modelo.
 """
 
 # Inicialización del Catálogo de libros
+def init():
+    """
+    Llama la funcion de inicializacion  del modelo.
+    """
+    # catalog es utilizado para interactuar con el modelo
+    analyzer = model.newAnalyzer()
+    return analyzer
 
 # Funciones para la carga de datos
+def loadData(analyzer, crimesfile):
+    """
+    Carga los datos de los archivos CSV en el modelo
+    """
+    crimesfile = cf.data_dir + crimesfile
+    input_file = csv.DictReader(open(crimesfile, encoding="utf-8"),
+                                delimiter=",")
+    for crime in input_file:
+        model.addSight(analyzer, crime)
+    return analyzer
 
 # Funciones de ordenamiento
 

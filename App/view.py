@@ -35,9 +35,18 @@ operación solicitada
 """
 
 def printMenu():
+    print("\n")
+    print("*******************************************")
     print("Bienvenido")
-    print("1- Cargar información en el catálogo")
-    print("2- ")
+    print("1- Inicializar Analizador")
+    print("2- Cargar información de crimenes")
+    print("3- Consultar avistamentos en una ciudad")
+    print("4- Consultar avistamientos por duración")
+    print("5- Consultar avistamientos por hora/minutos del día")
+    print("6- Consultar avistamientos en rango de fechas")
+    print("7- Consultar avistamientos de una zona geográfica")
+    print("0- Salir")
+    print("*******************************************")
 
 catalog = None
 
@@ -51,7 +60,13 @@ while True:
         print("Cargando información de los archivos ....")
 
     elif int(inputs[0]) == 2:
-        pass
+        print("\nCargando información de crimenes ....")
+        controller.loadData(cont, crimefile)
+        print('Crimenes cargados: ' + str(controller.crimesSize(cont)))
+        print('Altura del arbol: ' + str(controller.indexHeight(cont)))
+        print('Elementos en el arbol: ' + str(controller.indexSize(cont)))
+        print('Menor Llave: ' + str(controller.minKey(cont)))
+        print('Mayor Llave: ' + str(controller.maxKey(cont)))
 
     else:
         sys.exit(0)
