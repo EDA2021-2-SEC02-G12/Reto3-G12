@@ -39,17 +39,33 @@ def init():
     return analyzer
 
 # Funciones para la carga de datos
-def loadData(analyzer, crimesfile):
+def loadData(analyzer, file):
     """
     Carga los datos de los archivos CSV en el modelo
     """
-    crimesfile = cf.data_dir + crimesfile
-    input_file = csv.DictReader(open(crimesfile, encoding="utf-8"),
+    file = cf.data_dir + file
+    input_file = csv.DictReader(open(file, encoding="utf-8"),
                                 delimiter=",")
-    for crime in input_file:
-        model.addSight(analyzer, crime)
+    for sighting in input_file:
+        model.addSight(analyzer, sighting)
     return analyzer
 
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
+
+def sightingsSize(analyzer):
+    """
+    Numero de avistamientos.
+    """
+    return model.sightingsSize(analyzer)
+
+def req1(analizer , city):
+    return model.req1(analizer , city)
+
+def req2(inferior , superior , analizer):
+    return model.req2(inferior , superior , analizer)
+
+def req4(inferior , superior , analizer):
+    return model.req4(inferior , superior , analizer)
+

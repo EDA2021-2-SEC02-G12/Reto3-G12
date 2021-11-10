@@ -34,14 +34,27 @@ se hace la solicitud al controlador para ejecutar la
 operación solicitada
 """
 
+# ___________________________________________________
+#  Ruta a los archivos
+# ___________________________________________________
+
+
+file = 'UFOS//UFOS-utf8-small.csv'
+cont = None
+
+# ___________________________________________________
+#  Menu principal
+# ___________________________________________________
+
+
 def printMenu():
     print("\n")
     print("*******************************************")
     print("Bienvenido")
     print("1- Inicializar Analizador")
-    print("2- Cargar información de crimenes")
+    print("2- Cargar información de avistamientos")
     print("3- Consultar avistamentos en una ciudad")
-    print("4- Consultar avistamientos por duración")
+    print("4- Consultar avistamientos por duración en segundos")
     print("5- Consultar avistamientos por hora/minutos del día")
     print("6- Consultar avistamientos en rango de fechas")
     print("7- Consultar avistamientos de una zona geográfica")
@@ -50,23 +63,79 @@ def printMenu():
 
 catalog = None
 
+
 """
 Menu principal
 """
 while True:
     printMenu()
-    inputs = input('Seleccione una opción para continuar\n')
+    inputs = input('Seleccione una opción para continuar\n>')
+
     if int(inputs[0]) == 1:
-        print("Cargando información de los archivos ....")
+        print("\nInicializando....")
+        # cont es el controlador que se usará de acá en adelante
+        cont = controller.init()
 
     elif int(inputs[0]) == 2:
-        print("\nCargando información de crimenes ....")
-        controller.loadData(cont, crimefile)
-        print('Crimenes cargados: ' + str(controller.crimesSize(cont)))
-        print('Altura del arbol: ' + str(controller.indexHeight(cont)))
-        print('Elementos en el arbol: ' + str(controller.indexSize(cont)))
-        print('Menor Llave: ' + str(controller.minKey(cont)))
-        print('Mayor Llave: ' + str(controller.maxKey(cont)))
+        print("\nCargando información de avistamientos ....")
+        controller.loadData(cont, file)
+        print('\nAvistmientos cargados: ' + str(controller.sightingsSize(cont)) + "\n")
+        print("\nPrimeros 5 avistamientos cargados: \n")
+        for position in range(1 , 6):
+            sighting = lt.getElement(cont["sightings"] , position)
+            print("Datetime: " + str(sighting["datetime"]) + " City: " + str(sighting["city"]))
+        print("\nÚltimos 5 avistamientos cargados: \n ")
+        for position2 in range(lt.size(cont["sightings"]) - 4 , lt.size(cont["sightings"]) + 1):
+            sighting = lt.getElement(cont["sightings"] , position2)
+            print("Datetime: " + str(sighting["datetime"]) + " City: " + str(sighting["city"]))
+
+    elif int(inputs[0]) == 3:
+        city = input("Ingrese la ciudad que desea consultar: ")
+
+        tuple = controller.req1(cont , city)
+        
+        #Parte de imprimir.
+        print("Se han reportado avistamientos en {} ciudades".format(tuple[0]))
+        print("En la ciudad de {} se han reportado {} avistamientos.".format(city , tuple[2]))
+
+        print("Los tres primeros y los tres últimos avistamientos son: ")
+        for i in range(1,7):
+            element = lt.getElement(tuple[1] , i)
+
+            print("Fecha y Hora: {} Ciudad: {} Estado: {} Pais: {} Forma: {} Duración (segundos): {}".format(element["datetime"] , element["city"] , element["state"] , element["country"] , element["shape"] , element["duration (seconds)"]))
+
+    elif int(inputs[0]) == 4:
+        inferior = input("Ingrese el límite inferior en segundos: ")
+        superior = input("Ingrese el límite superior en segundos: ")
+ 
+        tuple = controller.req2(inferior , superior , cont)
+
+        #Parte de impresión
+
+        print("\nEl avistamiento más largo fue de {} segundos y ocurrió {} veces.\n".format(
+            tuple[0] , tuple[1]
+        ))
+        print("\nLos 3 primeros y los 3 últimos avistamientos fueron:\n")
+        for element in lt.iterator(tuple[2]):
+            print("Fecha y Hora: {} Ciudad: {} Estado: {} Pais: {} Forma: {} Duración (segundos): {}".format(element["datetime"] , element["city"] , element["state"] , element["country"] , element["shape"] , element["duration (seconds)"]))
+            
+        for element in lt.iterator(tuple[3]):
+            print("Fecha y Hora: {} Ciudad: {} Estado: {} Pais: {} Forma: {} Duración (segundos): {}".format(element["datetime"] , element["city"] , element["state"] , element["country"] , element["shape"] , element["duration (seconds)"]))
+
+    elif int(inputs[0]) == 6:
+        inferior = input("Ingrese el límite inferior en formato AAAA-MM-DD: ")
+        superior = input("Ingrese el límite superior en formato AAAA-MM-DD: ")
+ 
+        tuple = controller.req4(inferior , superior , cont)
+
+        #Parte de impresión
+
+        print("El avistamiento más antiguo ocurrió {} veces en {}: ".format(tuple[1] , tuple[0]))
+        print("Los 3 primeros y los 3 ultimos avistamientos ocurridos fueron: ")
+        for i in range (1,7):
+            element = lt.getElement(tuple[3] , i)
+            print("Fecha y Hora: {} Ciudad: {} País {} Duracion (segundos): {} Forma del objeto: {}".format(element["datetime"], element["city"] , element["country"] , element["duration (seconds)"] , element["shape"]))
+
 
     else:
         sys.exit(0)
