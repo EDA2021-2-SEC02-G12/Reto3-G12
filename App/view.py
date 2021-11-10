@@ -123,10 +123,15 @@ while True:
             print("Fecha y Hora: {} Ciudad: {} Estado: {} Pais: {} Forma: {} Duración (segundos): {}".format(element["datetime"] , element["city"] , element["state"] , element["country"] , element["shape"] , element["duration (seconds)"]))
 
     elif int(inputs[0]) == 5:
-        inferior = input("Ingrese el límite inferior en segundos: ")
-        superior = input("Ingrese el límite superior en segundos: ")
+        print("hola")
+
+    elif int(inputs[0]) == 6:
+        inferior = input("Ingrese el límite inferior en formato AAAA-MM-DD: ")
+        superior = input("Ingrese el límite superior en formato AAAA-MM-DD: ")
  
-        tuple = controller.req2(inferior , superior , cont)
+        tuple = controller.req4(inferior , superior , cont)
+
+        #Parte de impresión
 
         print("El avistamiento más antiguo ocurrió {} veces en {}: ".format(tuple[1] , tuple[0]))
         print("Los 3 primeros y los 3 ultimos avistamientos ocurridos fueron: ")
@@ -134,13 +139,6 @@ while True:
             element = lt.getElement(tuple[3] , i)
             print("Fecha y Hora: {} Ciudad: {} País {} Duracion (segundos): {} Forma del objeto: {}".format(element["datetime"], element["city"] , element["country"] , element["duration (seconds)"] , element["shape"]))
 
-    elif int(inputs[0]) == 6:
-        inferior = input("Ingrese el límite inferior en formato HH:MM ")
-        superior = input("Ingrese el límite superior en formato HH:MM ")
- 
-        tuple = controller.req3(inferior , superior , cont)
-
-        #Parte de impresión
 
        
 
