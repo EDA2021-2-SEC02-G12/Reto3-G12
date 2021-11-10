@@ -69,3 +69,5 @@ def req2(inferior , superior , analizer):
 def req4(inferior , superior , analizer):
     return model.req4(inferior , superior , analizer)
 
+def req3(inferior , superior , analizer):
+    return model.req3(inferior , superior , analizer)

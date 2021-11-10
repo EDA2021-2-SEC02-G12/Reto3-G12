@@ -54,13 +54,15 @@ def newAnalyzer():
     analyzer = {'sightings': None,
                 'citymap': None,
                 'datetime': None,
-                'seconds': None
+                'seconds': None , 
+                'hour-month':None
                 }
 
     analyzer['sightings'] = lt.newList('SINGLE_LINKED')
     analyzer['citymap'] = mp.newMap(maptype='PROBING')
     analyzer['datetime'] = om.newMap(omaptype='RBT')
     analyzer['seconds'] = om.newMap(omaptype='RBT')
+    analyzer['hour-month'] = om.newMap(omaptype='RBT')
     return analyzer
 
 # Funciones para agregar informacion al catálogo
@@ -71,6 +73,7 @@ def addSight(analyzer, sight):
     update_map_city(analyzer['citymap'], sight)
     update_date(analyzer["datetime"] , sight)
     update_seconds(analyzer["seconds"] , sight)
+    update_hm(analyzer["hour-month"] , sight)
     return analyzer
 
 def update_map_city(map, sight):
@@ -186,6 +189,61 @@ def newseconds_entry(duration):
     entry['sights'] = lt.newList('ARRAY_LIST', compareDates)
     return entry
 
+def update_hm(map, sight):
+    """
+    Requerimiento 3: Añade elementos al map de horas, minutos.
+    """
+
+    duration = sight['datetime']
+    time = duration.split(" ")[1]
+    time_format = datetime.datetime.strptime(time , '%H:%M:%S')
+    time_format2 = time_format.time()
+    
+    entry = om.get(map, time_format2)
+    if entry is None:
+        datentry = newDataEntry_hm(sight)
+        om.put(map, time_format2, datentry)
+    else:
+        datentry = me.getValue(entry)
+    lt.addLast(datentry["sights-list"] , sight)
+    add_om_dates(sight , datentry)
+    return map
+
+
+def newDataEntry_hm(sight):
+    """
+    Crea una entrada en el indice por h-m.
+    """
+    entry = {"sights-map":None , 
+             "sights-list":None}
+
+    entry['sights-map'] = om.newMap(omaptype='RBT' , comparefunction=compareDates)
+    entry['sights-list'] = lt.newList('SINGLE_LINKED', compareDates)
+    return entry
+
+def add_om_dates(sight , datentry_c):
+    date = sight["datetime"].split(" ")[0]
+    date_format = datetime.datetime.strptime(date , "%Y-%m-%d")
+    date_new = date_format.date()
+    map = datentry_c["sights-map"]
+
+    entry = om.get(map, date_new)
+    if entry is None:
+        datentry = newDataEntry_date(sight)
+        om.put(map, date_new, datentry)
+    else:
+        datentry = me.getValue(entry)
+    lt.addLast(datentry["sights_in"] , sight)
+    return map
+
+def newDataEntry_date(sight):
+    """
+    Crea una entrada en el indice por ciudad, es decir map de ciudades.
+    """
+    entry = {"sights_in":None}
+    entry['sights_in'] = lt.newList('SINGLE_LINKED', compareDates)
+    return entry
+
 
 # Funciones para creacion de datos
 
@@ -295,6 +353,11 @@ def req2(inferior , superior , analizer):
 
 
     return maxkey , number_sights , sublist_first3 , sublist_last3
+
+def req3(inferior , superior , analizer):
+    
+    inferior_format = datetime.datetime.strptime(inferior , '%H:%M')
+    print(inferior_format)
 
 
 # Funciones utilizadas para comparar elementos dentro de una lista
