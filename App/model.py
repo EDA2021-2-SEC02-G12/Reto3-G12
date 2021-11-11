@@ -54,13 +54,17 @@ def newAnalyzer():
     analyzer = {'sightings': None,
                 'citymap': None,
                 'datetime': None,
-                'seconds': None
+                'seconds': None , 
+                'hour-month':None,
+                'longitude':None
                 }
 
     analyzer['sightings'] = lt.newList('SINGLE_LINKED')
     analyzer['citymap'] = mp.newMap(maptype='PROBING')
     analyzer['datetime'] = om.newMap(omaptype='RBT')
     analyzer['seconds'] = om.newMap(omaptype='RBT')
+    analyzer['hour-month'] = om.newMap(omaptype='RBT')
+    analyzer['longitude'] = om.newMap(omaptype='RBT')
     return analyzer
 
 # Funciones para agregar informacion al catálogo
@@ -71,6 +75,8 @@ def addSight(analyzer, sight):
     update_map_city(analyzer['citymap'], sight)
     update_date(analyzer["datetime"] , sight)
     update_seconds(analyzer["seconds"] , sight)
+    update_hm(analyzer["hour-month"] , sight)
+    update_longitude(analyzer["longitude"] , sight)
     return analyzer
 
 def update_map_city(map, sight):
@@ -186,6 +192,106 @@ def newseconds_entry(duration):
     entry['sights'] = lt.newList('ARRAY_LIST', compareDates)
     return entry
 
+def update_hm(map, sight):
+    """
+    Requerimiento 3: Añade elementos al map de horas, minutos.
+    """
+
+    duration = sight['datetime']
+    time = duration.split(" ")[1]
+    time_format = datetime.datetime.strptime(time , '%H:%M:%S')
+    time_format2 = time_format.time()
+    
+    entry = om.get(map, time_format2)
+    if entry is None:
+        datentry = newDataEntry_hm(sight)
+        om.put(map, time_format2, datentry)
+    else:
+        datentry = me.getValue(entry)
+    lt.addLast(datentry["sights-list"] , sight)
+    add_om_dates(sight , datentry)
+    return map
+
+
+def newDataEntry_hm(sight):
+    """
+    Crea una entrada en el indice por h-m.
+    """
+    entry = {"sights-map":None , 
+             "sights-list":None}
+
+    entry['sights-map'] = om.newMap(omaptype='RBT' , comparefunction=compareDates)
+    entry['sights-list'] = lt.newList('SINGLE_LINKED', compareDates)
+    return entry
+
+def add_om_dates(sight , datentry_c):
+    date = sight["datetime"].split(" ")[0]
+    date_format = datetime.datetime.strptime(date , "%Y-%m-%d")
+    date_new = date_format.date()
+    map = datentry_c["sights-map"]
+
+    entry = om.get(map, date_new)
+    if entry is None:
+        datentry = newDataEntry_date(sight)
+        om.put(map, date_new, datentry)
+    else:
+        datentry = me.getValue(entry)
+    lt.addLast(datentry["sights_in"] , sight)
+    return map
+
+def newDataEntry_date(sight):
+    """
+    Crea una entrada en el indice por ciudad, es decir map de ciudades.
+    """
+    entry = {"sights_in":None}
+    entry['sights_in'] = lt.newList('SINGLE_LINKED', compareDates)
+    return entry
+
+def update_longitude(map, sight):
+    """
+    """
+    longitude = round(float(sight['longitude']) , 2)
+
+    entry = om.get(map, longitude)
+    if entry is None:
+        datentry = newDataEntry_longitude(sight)
+        om.put(map, longitude, datentry)
+    else:
+        datentry = me.getValue(entry)
+    add_om_latitude(sight , datentry)
+    return map
+    
+def newDataEntry_longitude(sight):
+    """
+    Crea una entrada en el indice por longitud.
+    """
+    entry = {"latitude":None}
+    entry['latitude'] = om.newMap(omaptype='RBT' , comparefunction=compareLongitudes)
+
+    return entry
+
+def add_om_latitude(sight , datentry):
+    
+    map_latitude = datentry["latitude"]
+    latitude = round(float(sight['latitude']) , 2)
+    entry2 = om.get(map_latitude, latitude)
+    if entry2 is None:
+        datentry = newDataEntry_latitude(sight)
+        om.put(map_latitude, latitude, datentry)
+    else:
+        datentry = me.getValue(entry2)
+    lt.addLast(datentry["latitude_list"] , sight)
+    datentry["size"] = lt.size(datentry['latitude_list'])
+    return map_latitude
+
+def newDataEntry_latitude(sight):
+    """
+    Crea una entrada en el indice por latitud.
+    """
+    entry = {"latitude_list":None , "size":None}
+    entry['latitude_list'] = lt.newList()
+
+    return entry 
 
 # Funciones para creacion de datos
 
@@ -296,12 +402,99 @@ def req2(inferior , superior , analizer):
 
     return maxkey , number_sights , sublist_first3 , sublist_last3
 
+def req3(inferior , superior , analizer):
+    
+    inferior_format = datetime.datetime.strptime(inferior , '%H:%M').time()
+    superior_format = datetime.datetime.strptime(superior , '%H:%M').time()
+
+    map = analizer["hour-month"]
+    mas_tardio_key = om.maxKey(map)
+    number_tardio = om.get(map , mas_tardio_key)
+    number_tardio_v = me.getValue(number_tardio)
+    size = lt.size(number_tardio_v["sights-list"])
+
+    rango = om.values(map , inferior_format , superior_format)
+
+    first_3_keys = lt.newList()
+    last_3_keys = lt.newList()
+
+    for i in range(1,4):
+        element = lt.getElement(rango , i)
+        om_element = element["sights-map"]
+        values_om = om.valueSet(om_element)
+        for value in lt.iterator(values_om):
+            val = value["sights_in"]
+            el = lt.getElement(val , 1)
+            lt.addLast(first_3_keys , el)
+    
+    for i in range(lt.size(rango)-2, lt.size(rango)+1):
+        element = lt.getElement(rango , i)
+        om_element = element["sights-map"]
+        values_om = om.valueSet(om_element)
+        for value in lt.iterator(values_om):
+            val = value["sights_in"]
+            el = lt.getElement(val , 1)
+            lt.addLast(last_3_keys , el)
+
+    first3 = lt.subList(first_3_keys , 1 , 3)
+    last3 = lt.subList(last_3_keys, lt.size(last_3_keys) - 2 , 3)
+
+
+    return mas_tardio_key , size , first3 , last3
+
+def req5(cont , min_long , max_long , min_lat , max_lat):
+
+    map = cont["longitude"]
+    longitude = om.values(map , min_long , max_long)
+    longitude2 = om.keys(map , min_long , max_long)
+
+    size = 0
+    ret_list = lt.newList()
+
+    for longitude_value in lt.iterator(longitude):
+        map_latitude = longitude_value["latitude"]
+        latitude = om.values(map_latitude , min_lat, max_lat)
+        if lt.isEmpty(latitude) == False:
+            for latitude_value in lt.iterator(latitude):
+                size_list = latitude_value["size"]
+                size = size + size_list
+                sightings = latitude_value["latitude_list"]
+                for sighting in lt.iterator(sightings):
+                    lt.addLast(ret_list , sighting)
+            
+    
+    ret2 = mer.sort(ret_list , cmpFinal)
+    
+    final_list = lt.newList()
+
+    for i in range(1,4):
+        element = lt.getElement(ret2 , i)
+        lt.addLast(final_list , element)
+
+    for i in range(lt.size(ret2)-2,lt.size(ret2)+1):
+        element = lt.getElement(ret_list , i)
+        lt.addLast(final_list , element)
+
+    
+    return size , ret2
 
 # Funciones utilizadas para comparar elementos dentro de una lista
 
 def compareDates(date1, date2):
     """
     Compara dos fechas
+    """
+    if (date1 == date2):
+        return 0
+    elif (date1 > date2):
+        return 1
+    else:
+        return -1
+
+
+def compareLongitudes(date1, date2):
+    """
+    Compara dos longitudes
     """
     if (date1 == date2):
         return 0
@@ -323,6 +516,23 @@ def cmpAlphabetically(country1, country2):
     ret = None 
 
     if country1["city"] < country2["city"]:
+        ret = True
+    else:
+        ret = False
+
+    return ret
+
+def cmpFinal(country1, country2):
+    """
+    
+    Realiza una compración lexicográfica
+    Args:
+    country1
+    country2
+    """
+    ret = None 
+
+    if float(country1["latitude"]) < float(country2["latitude"]):
         ret = True
     else:
         ret = False

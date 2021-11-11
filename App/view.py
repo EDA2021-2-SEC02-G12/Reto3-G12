@@ -122,6 +122,20 @@ while True:
         for element in lt.iterator(tuple[3]):
             print("Fecha y Hora: {} Ciudad: {} Estado: {} Pais: {} Forma: {} Duración (segundos): {}".format(element["datetime"] , element["city"] , element["state"] , element["country"] , element["shape"] , element["duration (seconds)"]))
 
+    elif int(inputs[0]) == 5:
+        inferior = input("Ingrese el límite inferior en formato HH:MM ")
+        superior = input("Ingrese el límite superior en formato HH:MM ")
+
+        tuple = controller.req3(inferior , superior , cont)
+
+        print("\nLos 3 primeros y los 3 últimos avistamientos fueron:\n")
+        for element in lt.iterator(tuple[2]):
+            print("Fecha y Hora: {} Ciudad: {} Estado: {} Pais: {} Forma: {} Duración (segundos): {}".format(element["datetime"] , element["city"] , element["state"] , element["country"] , element["shape"] , element["duration (seconds)"]))
+            
+        for element in lt.iterator(tuple[3]):
+            print("Fecha y Hora: {} Ciudad: {} Estado: {} Pais: {} Forma: {} Duración (segundos): {}".format(element["datetime"] , element["city"] , element["state"] , element["country"] , element["shape"] , element["duration (seconds)"]))
+
+
     elif int(inputs[0]) == 6:
         inferior = input("Ingrese el límite inferior en formato AAAA-MM-DD: ")
         superior = input("Ingrese el límite superior en formato AAAA-MM-DD: ")
@@ -135,6 +149,24 @@ while True:
         for i in range (1,7):
             element = lt.getElement(tuple[3] , i)
             print("Fecha y Hora: {} Ciudad: {} País {} Duracion (segundos): {} Forma del objeto: {}".format(element["datetime"], element["city"] , element["country"] , element["duration (seconds)"] , element["shape"]))
+
+    elif int(inputs[0]) == 7:
+        
+        min_long = round(float(input("Ingrese el límite mínimo de longitud: ")) , 2)
+        max_long = round(float(input("Ingrese el límite máximo de longitud: ")) , 2)
+
+        min_lat = round(float(input("Ingrese el límite mínimo de longitud: ")) , 2)
+        max_lat = round(float(input("Ingrese el límite máximo de longitud: ")) , 2)
+
+        tuple = controller.req5(cont , min_long , max_long , min_lat , max_lat)
+
+        print("El total de avistamientos en las coordenadas dadas fue {}".format(tuple[0]))
+        print("Los tres primeros y los 3 ultimos avistamientos fueron: ")
+
+        for i in range (1,7):
+            element = lt.getElement(tuple[1] , i)
+            print("Fecha y Hora: {} Ciudad: {} País {} Duracion (segundos): {} Forma del objeto: {}".format(element["datetime"], element["city"] , element["country"] , element["duration (seconds)"] , element["shape"]))
+
 
 
     else:

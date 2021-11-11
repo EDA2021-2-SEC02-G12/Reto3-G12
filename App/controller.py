@@ -69,3 +69,8 @@ def req2(inferior , superior , analizer):
 def req4(inferior , superior , analizer):
     return model.req4(inferior , superior , analizer)
 
+def req3(inferior , superior , analizer):
+    return model.req3(inferior , superior , analizer)
+
+def req5(cont , min_long , max_long , min_lat , max_lat):
+    return model.req5(cont , min_long , max_long , min_lat , max_lat)
